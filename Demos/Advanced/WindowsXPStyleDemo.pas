@@ -12,7 +12,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, VirtualTrees, ImgList, ComCtrls, ToolWin, Menus, StdCtrls;
+  Dialogs, VirtualTrees, ImgList, ComCtrls, ToolWin, Menus, StdCtrls, UITypes;
 
 type
   TWindowsXPForm = class(TForm)
@@ -32,21 +32,22 @@ type
     ToolButton9: TToolButton;
     PrintDialog: TPrintDialog;
     procedure XPTreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
-      Column: TColumnIndex; var Ghosted: Boolean; var Index: Integer);
+      Column: TColumnIndex; var Ghosted: Boolean; var Index: TImageIndex);
     procedure FormCreate(Sender: TObject);
     procedure XPTreeInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure XPTreeInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
     procedure XPTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      TextType: TVSTTextType; var CellText: UnicodeString);
+      TextType: TVSTTextType; var CellText: string);
     procedure XPTreeHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
     procedure XPTreeCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
       var Result: Integer);
     procedure XPTreeGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: UnicodeString);
+      var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: string);
     procedure Label4Click(Sender: TObject);
     procedure ToolButton9Click(Sender: TObject);
     procedure XPTreeStateChange(Sender: TBaseVirtualTree; Enter, Leave: TVirtualTreeStates);
+    procedure XPTreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
   end;
 
 var
@@ -57,7 +58,7 @@ var
 implementation
 
 uses
-  Main, ShellAPI, Printers, States;
+  Main, ShellAPI, Printers, States, Vcl.GraphUtil;
 
 {$R *.dfm}
 
@@ -94,7 +95,7 @@ var
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TWindowsXPForm.XPTreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var Index: Integer);
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var Index: TImageIndex);
 
 var
   Data: PEntry;
@@ -103,12 +104,12 @@ begin
   Data := Sender.GetNodeData(Node);
   case Kind of
     ikNormal, ikSelected:
-      if (Column = 0) and (Node.Parent = Sender.RootNode) then
+      if (Column = 0) and (Sender.NodeParent[Node] = nil) then
         Index := Data.Image;
     ikState:
       case Column of
         0:
-          if Node.Parent <> Sender.RootNode then
+          if Sender.NodeParent[Node] <> nil then
             Index := 21;
       end;
   end;
@@ -119,11 +120,6 @@ end;
 procedure TWindowsXPForm.FormCreate(Sender: TObject);
 
 begin
-  // We assign these handlers manually to keep the demo source code compatible
-  // with older Delphi versions after using UnicodeString instead of WideString.
-  XPTree.OnGetText := XPTreeGetText;
-  XPTree.OnGetHint := XPTreeGetHint;
-
   XPTree.NodeDataSize := SizeOf(TEntry);
 
   ConvertToHighColor(LargeImages);
@@ -163,7 +159,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TWindowsXPForm.XPTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var CellText: UnicodeString);
+  TextType: TVSTTextType; var CellText: string);
 
 var
   Data: PEntry;
@@ -172,15 +168,15 @@ begin
   Data := Sender.GetNodeData(Node);
   case Column of
     0:
-      if Node.Parent = Sender.RootNode then
+      if Sender.NodeParent[Node] = nil then
         CellText := Data.Caption
       else
-        Text := 'More entries';
+        CellText := 'More entries';
     1:
-      if Node.Parent = Sender.RootNode then
+      if Sender.NodeParent[Node] = nil then
         CellText := FloatToStr(Data.Size / 1000) + ' MB';
     2:
-      if Node.Parent = Sender.RootNode then
+      if Sender.NodeParent[Node] = nil then
         CellText := 'System Folder';
   end;
 end;
@@ -213,9 +209,10 @@ begin
           else
             SortDirection := sdAscending;
 
-        if SortColumn <> NoColumn then
-          Columns[SortColumn].Color := $F7F7F7;
-        SortTree(SortColumn, SortDirection, False);
+        if SortColumn <> NoColumn then begin
+          Columns[SortColumn].Color := GetShadowColor(ColorToRGB(XPTree.Colors.BackGroundColor), -32);
+        end;
+        SortTree(SortColumn, SortDirection, True);
 
       end;
     end;
@@ -244,7 +241,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TWindowsXPForm.XPTreeGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: UnicodeString);
+  var LineBreakStyle: TVTTooltipLineBreakStyle; var HintText: string);
 
 begin
   // Show only a dummy hint. It is just to demonstrate how to do it.
@@ -258,7 +255,7 @@ end;
 procedure TWindowsXPForm.Label4Click(Sender: TObject);
 
 begin
-  ShellExecute(0, 'open', 'http://groups.yahoo.com/group/VirtualExplorerTree', nil, nil, SW_SHOW);
+    ShellExecute(0, 'open', 'https://groups.google.com/forum/#!forum/virtual-treeview', nil, nil, SW_SHOW);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -280,5 +277,15 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
+procedure TWindowsXPForm.XPTreeFreeNode(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
+var
+  Data: PEntry;
+
+begin
+  Data := Sender.GetNodeData(Node);
+  Finalize(Data^);
+end;
 
 end.

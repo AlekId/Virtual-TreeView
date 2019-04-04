@@ -1,16 +1,15 @@
 object HeaderOwnerDrawForm: THeaderOwnerDrawForm
   Left = 572
   Top = 407
-  Width = 792
-  Height = 476
+  ClientHeight = 438
+  ClientWidth = 776
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Scaled = False
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
@@ -34,12 +33,6 @@ object HeaderOwnerDrawForm: THeaderOwnerDrawForm
       'ey are not handled by the application. This allows very flexible' +
       ' designs but avoids full custom draw if only a small details mus' +
       't be drawn differently.'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    ParentFont = False
     ShowAccelChar = False
     WordWrap = True
   end
@@ -50,7 +43,6 @@ object HeaderOwnerDrawForm: THeaderOwnerDrawForm
     Height = 301
     Anchors = [akLeft, akTop, akRight, akBottom]
     BevelOuter = bvNone
-    CheckImageKind = ckDarkTick
     ClipboardFormats.Strings = (
       'CSV'
       'HTML Format'
@@ -68,17 +60,11 @@ object HeaderOwnerDrawForm: THeaderOwnerDrawForm
     EditDelay = 100
     Header.AutoSizeIndex = 0
     Header.Background = clBtnShadow
-    Header.Font.Charset = ANSI_CHARSET
-    Header.Font.Color = clWindowText
-    Header.Font.Height = -12
-    Header.Font.Name = 'Arial'
-    Header.Font.Style = [fsBold]
     Header.Height = 110
     Header.Images = HeaderImages
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoShowSortGlyphs, hoVisible]
     Header.SortColumn = 0
     Header.Style = hsFlatButtons
-    HintAnimation = hatNone
     HintMode = hmTooltip
     HotCursor = crHandPoint
     LineMode = lmBands
@@ -94,6 +80,7 @@ object HeaderOwnerDrawForm: THeaderOwnerDrawForm
     TreeOptions.PaintOptions = [toHideFocusRect, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages]
     TreeOptions.SelectionOptions = [toDisableDrawSelection, toFullRowSelect]
     OnAdvancedHeaderDraw = HeaderCustomDrawTreeAdvancedHeaderDraw
+    OnGetText = HeaderCustomDrawTreeGetText
     OnHeaderDrawQueryElements = HeaderCustomDrawTreeHeaderDrawQueryElements
     OnHeaderMouseDown = HeaderCustomDrawTreeHeaderMouseDown
     OnHeaderMouseUp = HeaderCustomDrawTreeHeaderMouseUp
@@ -143,7 +130,7 @@ object HeaderOwnerDrawForm: THeaderOwnerDrawForm
     Left = 24
     Top = 52
     Bitmap = {
-      494C01010300040004005A005A00FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01010300040008005A005A00FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000680100005A000000010020000000000040FA
       0100000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

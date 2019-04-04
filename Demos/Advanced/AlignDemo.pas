@@ -16,7 +16,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, VirtualTrees, ComCtrls, ExtCtrls, ImgList, Menus;
+  StdCtrls, Buttons, VirtualTrees, ComCtrls, ExtCtrls, ImgList, Menus, UITypes;
 
 type
   TAlignForm = class(TForm)
@@ -44,9 +44,9 @@ type
     Label5: TLabel;
     LayoutCombo: TComboBox;
     procedure AlignTreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var Index: Integer);
+      var Ghosted: Boolean; var Index: TImageIndex);
     procedure AlignTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-      var CellText: UnicodeString);
+      var CellText: string);
     procedure AlignTreePaintText(Sender: TBaseVirtualTree; const Canvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType);
     procedure AlignTreeGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
@@ -63,6 +63,7 @@ type
     procedure LayoutComboChange(Sender: TObject);
     procedure AlignTreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure AlignTreeStateChange(Sender: TBaseVirtualTree; Enter, Leave: TVirtualTreeStates);
+    procedure AlignTreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     FArabicFont,
     FHebrewFont: TFont;
@@ -151,7 +152,7 @@ begin
       Canvas.Font.Color := clSilver;
     2:
       begin
-        if not Odd(Node.Parent.Index) then
+        if not Odd(Sender.NodeParent[Node].Index) then
           Canvas.Font := FArabicFont
         else
           Canvas.Font := FHebrewFont;
@@ -161,14 +162,14 @@ begin
   // Reset the text color for selected and drop target nodes.
   if ((Node = Sender.DropTargetNode) or (vsSelected in Node.States)) and (Column = Sender.FocusedColumn) then
     Canvas.Font.Color := clHighlightText;
-  if Node.Parent = Sender.RootNode then
+  if Sender.NodeParent[Node] = nil then
     Canvas.Font.Style := [fsBold];
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TAlignForm.AlignTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType; var CellText: UnicodeString);
+  TextType: TVSTTextType; var CellText: string);
 
 var
   Data: PAlignData;
@@ -188,7 +189,7 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TAlignForm.AlignTreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
-  Column: TColumnIndex; var Ghosted: Boolean; var Index: Integer);
+  Column: TColumnIndex; var Ghosted: Boolean; var Index: TImageIndex);
 
 var
   Data: PAlignData;
@@ -199,6 +200,8 @@ begin
     Data := Sender.GetNodeData(Node);
     Index := Data.ImageIndex;
   end;
+  if (Kind = ikState) and (Column = Sender.Header.MainColumn) then
+    Index := 1;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -251,6 +254,7 @@ begin
       end;
     end;
   end;
+  Node.CheckType := TCheckType.ctTriStateCheckBox;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -273,10 +277,6 @@ var
  NewItem: TMenuItem;
 
 begin
-  // We assign the OnGetText handler manually to keep the demo source code compatible
-  // with older Delphi versions after using UnicodeString instead of WideString.
-  AlignTree.OnGetText := AlignTreeGetText;
-
   // High color image lists look much better.
   ConvertToHighColor(TreeImages);
   ConvertToHighColor(HeaderImages);
@@ -616,5 +616,15 @@ begin
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
+
+procedure TAlignForm.AlignTreeFreeNode(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
+var
+  Data: PAlignData;
+
+begin
+  Data := Sender.GetNodeData(Node);
+  Finalize(Data^);
+end;
 
 end.

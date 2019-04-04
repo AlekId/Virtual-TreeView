@@ -1,17 +1,16 @@
 object NodeForm: TNodeForm
   Left = 573
   Top = 332
-  Width = 773
-  Height = 542
   Caption = 'NodeForm'
+  ClientHeight = 504
+  ClientWidth = 757
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -13
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Scaled = False
   OnCreate = FormCreate
   DesignSize = (
     757
@@ -71,7 +70,7 @@ object NodeForm: TNodeForm
       Header.Font.Charset = DEFAULT_CHARSET
       Header.Font.Color = clWindowText
       Header.Font.Height = -11
-      Header.Font.Name = 'MS Sans Serif'
+      Header.Font.Name = 'Tahoma'
       Header.Font.Style = []
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag]
       HintAnimation = hatNone
@@ -90,6 +89,7 @@ object NodeForm: TNodeForm
       TreeOptions.PaintOptions = [toHideFocusRect, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages]
       TreeOptions.SelectionOptions = [toMultiSelect]
       OnEditing = MLTreeEditing
+      OnGetText = MLTreeGetText
       OnPaintText = MLTreePaintText
       OnInitNode = MLTreeInitNode
       OnMeasureItem = MLTreeMeasureItem

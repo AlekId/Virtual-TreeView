@@ -1,18 +1,16 @@
 object SpeedForm: TSpeedForm
   Left = 1745
   Top = 227
-  Width = 566
-  Height = 577
+  ClientHeight = 539
+  ClientWidth = 550
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -13
-  Font.Name = 'MS Sans Serif'
+  Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  Scaled = False
   Visible = True
-  OnCreate = FormCreate
   DesignSize = (
     550
     539)
@@ -21,14 +19,14 @@ object SpeedForm: TSpeedForm
   object Label1: TLabel
     Left = 7
     Top = 8
-    Width = 139
+    Width = 137
     Height = 16
     Caption = 'Last operation duration:'
   end
   object Label3: TLabel
     Left = 7
     Top = 524
-    Width = 93
+    Width = 92
     Height = 16
     Anchors = [akLeft, akBottom]
     Caption = 'Nodes in tree: 0'
@@ -36,7 +34,7 @@ object SpeedForm: TSpeedForm
   object Label6: TLabel
     Left = 164
     Top = 524
-    Width = 67
+    Width = 65
     Height = 16
     Anchors = [akLeft, akBottom]
     Caption = 'Selected: 0'
@@ -59,14 +57,14 @@ object SpeedForm: TSpeedForm
   object Label2: TLabel
     Left = 263
     Top = 114
-    Width = 121
+    Width = 118
     Height = 16
     Anchors = [akTop, akRight]
     Caption = 'As an orientation:'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -13
-    Font.Name = 'MS Sans Serif'
+    Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
     Transparent = True
@@ -1561,7 +1559,7 @@ object SpeedForm: TSpeedForm
     Header.Font.Charset = DEFAULT_CHARSET
     Header.Font.Color = clWindowText
     Header.Font.Height = -11
-    Header.Font.Name = 'MS Sans Serif'
+    Header.Font.Name = 'Tahoma'
     Header.Font.Style = []
     Header.MainColumn = -1
     Header.Options = [hoColumnResize, hoDrag, hoHotTrack]
@@ -1572,10 +1570,10 @@ object SpeedForm: TSpeedForm
     ScrollBarOptions.VerticalIncrement = 18
     ShowHint = True
     TabOrder = 0
-    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoTristateTracking]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
     TreeOptions.SelectionOptions = [toMultiSelect]
     OnChange = VST1Change
+    OnGetText = VST1GetText
     OnStateChange = VST1StateChange
     OnStructureChange = VST1StructureChange
     Columns = <>

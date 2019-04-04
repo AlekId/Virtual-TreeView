@@ -1,4 +1,4 @@
-unit VirtualTrees.Export;
+﻿unit VirtualTrees.Export;
 
 {$WARN UNSAFE_CODE OFF}
 {$WARN IMPLICIT_STRING_CAST OFF}
@@ -6,9 +6,9 @@ unit VirtualTrees.Export;
 
 interface
 
-uses Winapi.Windows, System.SysUtils, Vcl.Graphics, System.Classes, Vcl.Forms,
-     Vcl.Controls, System.StrUtils, System.Generics.Collections,
-     VirtualTrees, VirtualTrees.Classes;
+uses Winapi.Windows,
+     VirtualTrees,
+     VirtualTrees.Classes;
 
 function ContentToHTML(Tree: TCustomVirtualStringTree; Source: TVSTTextSourceType; const Caption: string = ''): String;
 function ContentToRTF(Tree: TCustomVirtualStringTree; Source: TVSTTextSourceType): RawByteString;
@@ -19,7 +19,14 @@ procedure ContentToCustom(Tree: TCustomVirtualStringTree; Source: TVSTTextSource
 implementation
 
 uses
-  UITypes;
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  System.Classes,
+  System.SysUtils,
+  System.StrUtils,
+  System.Generics.Collections,
+  System.UITypes;
 
 type
   TCustomVirtualStringTreeCracker = class(TCustomVirtualStringTree)
@@ -30,7 +37,8 @@ const
   WideLF = Char(#10);
 
 
-function ContentToHTML(Tree: TCustomVirtualStringTree; Source: TVSTTextSourceType; const Caption: string): String;
+
+function ContentToHTML(Tree: TCustomVirtualStringTree; Source: TVSTTextSourceType; const Caption: string): String;
 
 // Renders the current tree content (depending on Source) as HTML text encoded in UTF-8.
 // If Caption is not empty then it is used to create and fill the header for the table built here.
@@ -82,7 +90,7 @@ var
 
   begin
     if Length(Name) = 0 then
-      Buffer.Add(' style="{')
+      Buffer.Add(' style="')
     else
     begin
       Buffer.Add('.');
@@ -102,9 +110,11 @@ var
 
     Buffer.Add('color: ');
     WriteColorAsHex(Font.Color);
-    Buffer.Add(';}');
+    Buffer.Add(';');
     if Length(Name) = 0 then
-      Buffer.Add('"');
+      Buffer.Add('"')
+    else
+      Buffer.Add('}');
   end;
 
   //--------------- end local functions ---------------------------------------
@@ -298,11 +308,13 @@ begin
     Run := Save;
     while Assigned(Run) and not CrackTree.OperationCanceled do
     begin
-      if ((not CrackTree.CanExportNode(Run)) or (Assigned(CrackTree.OnBeforeNodeExport) and (not CrackTree.OnBeforeNodeExport(CrackTree, etHTML, Run)))) then
+      if (not CrackTree.CanExportNode(Run)) then
       begin
         Run := GetNextNode(Run);
         Continue;
       end;
+      if Assigned(CrackTree.OnBeforeNodeExport) then
+        CrackTree.OnBeforeNodeExport(CrackTree, etHTML, Run);
       Level := CrackTree.GetNodeLevel(Run);
       Buffer.Add(' <tr class="default">');
       Buffer.AddNewLine;
@@ -671,12 +683,13 @@ begin
     Run := Save;
     while Assigned(Run) and not CrackTree.OperationCanceled do
     begin
-      if ((not CrackTree.CanExportNode(Run)) or
-         (Assigned(CrackTree.OnBeforeNodeExport) and (not CrackTree.OnBeforeNodeExport(CrackTree, etRTF, Run)))) then
+      if (not CrackTree.CanExportNode(Run)) then
       begin
         Run := GetNextNode(Run);
         Continue;
       end;
+      if Assigned(CrackTree.OnBeforeNodeExport) then
+        CrackTree.OnBeforeNodeExport(CrackTree, etRTF, Run);
       I := 0;
       while not RenderColumns or (I < Length(Columns)) do
       begin
@@ -792,7 +805,8 @@ begin
   end;
 end;
 
-function ContentToUnicodeString(Tree: TCustomVirtualStringTree; Source: TVSTTextSourceType; const Separator: string): string;
+
+function ContentToUnicodeString(Tree: TCustomVirtualStringTree; Source: TVSTTextSourceType; const Separator: string): string;
 
 // Renders the current tree content (depending on Source) as Unicode text.
 // If an entry contains the separator char then it is wrapped with double quotation marks.
@@ -940,7 +954,7 @@ function ContentToClipboard(Tree: TCustomVirtualStringTree; Format: Word; Source
 
   //--------------- local function --------------------------------------------
 
-  procedure MakeFragment(var HTML: String);
+  procedure MakeFragment(var HTML: Utf8String);
 
   // Helper routine to build a properly-formatted HTML fragment.
 
@@ -961,7 +975,7 @@ function ContentToClipboard(Tree: TCustomVirtualStringTree; Format: Word; Source
       Length(EndFragment) + 4 * NumberLengthAndCR;
 
   var
-    Description: String;
+    Description: Utf8String;
     StartHTMLIndex,
     EndHTMLIndex,
     StartFragmentIndex,
@@ -993,6 +1007,7 @@ var
   DataSize: Cardinal;
   S: AnsiString;
   WS: string;
+  lUtf8String: Utf8string;
   P: Pointer;
   CrackTree: TCustomVirtualStringTreeCracker;
 begin
@@ -1029,12 +1044,12 @@ begin
     end
     else if Format = CF_HTML then
     begin
-      WS := ContentToHTML(CrackTree, Source);
+      lUtf8String := ContentToHTML(CrackTree, Source);
       // Build a valid HTML clipboard fragment.
-      MakeFragment(WS);
-      S := S + #0;
-      Data := PChar(WS);
-      DataSize := Length(WS) * Sizeof(char);
+      MakeFragment(lUtf8String);
+      lUtf8String := lUtf8String + #0;
+      Data := PAnsiChar(lUtf8String);
+      DataSize := Length(lUtf8String);
     end;
   end;
 
